@@ -22,15 +22,18 @@ for robust time-series pre-processing and prediction/classification.
 - TS date/val matrix conversion of 1-d TS using sliding windows for ML input
 - Pipeline API allows high-level description of the processing workflow
 - Easily extensible architecture by using just two main interfaces: fit and transform
+- Support for hundreds of external ML libs from Scikitlearn and Caret by using common API wrappers for PyCall and RCall
 
 
 ## Installation
 
 TSML is in the Julia Official package registry. 
 The latest release can be installed at the Julia 
-prompt using Julia's package management:
+prompt using Julia's package management which is triggered
+by pressing `]` at the julia prompt:
 ```julia
-julia> ]add TSML
+julia> ]
+(v1.0) pkg> add TSML
 ```
 
 or
@@ -45,6 +48,12 @@ or
 ```julia
 julia> using Pkg
 julia> Pkg.add("TSML")
+```
+
+or 
+
+```julia
+julia> pkg"add TSML"
 ```
 Once TSML is installed, you can load the TSML package by:
 
