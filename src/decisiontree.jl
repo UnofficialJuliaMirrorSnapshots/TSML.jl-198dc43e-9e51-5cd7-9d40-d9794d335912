@@ -18,6 +18,30 @@ export PrunedTree,
        transform!
 
 # Pruned CART decision tree.
+
+"""
+    PrunedTree(
+      Dict(
+        :purity_threshold => 1.0,
+        :max_depth => -1,
+        :min_samples_leaf => 1,
+        :min_samples_split => 2,
+        :min_purity_increase => 0.0
+      )
+    )
+
+Decision tree classifier.  
+See [DecisionTree.jl's documentation](https://github.com/bensadeghi/DecisionTree.jl)
+
+Hyperparmeters:
+- `:purity_threshold` => 1.0 (merge leaves having >=thresh combined purity)
+- `:max_depth` => -1 (maximum depth of the decision tree)
+- `:min_samples_leaf` => 1 (the minimum number of samples each leaf needs to have)
+- `:min_samples_split` => 2 (the minimum number of samples in needed for a split)
+- `:min_purity_increase` => 0.0 (minimum purity needed for a split)
+
+Implements `fit!`, `transform!`
+"""
 mutable struct PrunedTree <: TSLearner
   model
   args
@@ -44,6 +68,11 @@ mutable struct PrunedTree <: TSLearner
   end
 end
 
+"""
+    fit!(tree::PrunedTree, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
+
+Function to optimize the hyperparameters of `PrunedTree` instance.
+"""
 function fit!(tree::PrunedTree, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
   instances = features
   if typeof(features) <: DataFrame
@@ -61,6 +90,12 @@ function fit!(tree::PrunedTree, features::T, labels::Vector) where {T<:Union{Vec
   tree.model = DT.prune_tree(tree.model, impl_args[:purity_threshold])
 end
 
+
+"""
+    transform!(tree::PrundTree, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
+
+Function to predict using the optimized hyperparameters of the trained `PrunedTree` instance.
+"""
 function transform!(tree::PrunedTree, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
   instances = features
   if typeof(features) <: DataFrame
@@ -83,6 +118,32 @@ ptreerun()
 
 
 # Random forest (CART).
+
+"""
+    RandomForest(
+      Dict(
+        :output => :class,
+        :num_subfeatures => 0,
+        :num_trees => 10,
+        :partial_sampling => 0.7,
+        :max_depth => -1
+      )
+    )
+
+Random forest classification. 
+See [DecisionTree.jl's documentation](https://github.com/bensadeghi/DecisionTree.jl)
+
+Hyperparmeters:
+- `:num_subfeatures` => 0  (number of features to consider at random per split)
+- `:num_trees` => 10 (number of trees to train)
+- `:partial_sampling` => 0.7 (fraction of samples to train each tree on)
+- `:max_depth` => -1 (maximum depth of the decision trees)
+- `:min_samples_leaf` => 1 (the minimum number of samples each leaf needs to have)
+- `:min_samples_split` => 2 (the minimum number of samples in needed for a split)
+- `:min_purity_increase` => 0.0 (minimum purity needed for a split)
+
+Implements `fit!`, `transform!`
+"""
 mutable struct RandomForest <: TSLearner
   model
   args
@@ -107,6 +168,12 @@ mutable struct RandomForest <: TSLearner
   end
 end
 
+
+"""
+    fit!(forest::RandomForest, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
+
+Function to optimize the parameters of the `RandomForest` instance.
+"""
 function fit!(forest::RandomForest, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
   instances = features
   if typeof(features) <: DataFrame
@@ -125,6 +192,13 @@ function fit!(forest::RandomForest, features::T, labels::Vector) where {T<:Union
   )
 end
 
+
+"""
+    transform!(forest::RandomForest, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
+
+
+Function to predict using the optimized hyperparameters of the trained `RandomForest` instance.
+"""
 function transform!(forest::RandomForest, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
   instances = features
   if typeof(features) <: DataFrame
@@ -147,6 +221,23 @@ rfrun()
 
 
 # Adaboosted decision stumps.
+
+"""
+    Adaboost(
+      Dict(
+        :output => :class,
+        :num_iterations => 7
+      )
+    )
+
+Adaboosted decision tree stumps. See
+[DecisionTree.jl's documentation](https://github.com/bensadeghi/DecisionTree.jl)
+
+Hyperparameters:
+- `:num_iterations` => 7 (number of iterations of AdaBoost)
+
+Implements `fit!`, `transform!`
+"""
 mutable struct Adaboost <: TSLearner
   model
   args
@@ -165,6 +256,12 @@ mutable struct Adaboost <: TSLearner
   end
 end
 
+
+"""
+    fit!(adaboost::Adaboost, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
+
+Function to optimize the hyperparameters of `Adaboost` instance.
+"""
 function fit!(adaboost::Adaboost, features::T, labels::Vector) where {T<:Union{Vector,Matrix,DataFrame}}
   instance = features
   if typeof(features) <: DataFrame
@@ -183,6 +280,11 @@ function fit!(adaboost::Adaboost, features::T, labels::Vector) where {T<:Union{V
   )
 end
 
+"""
+    transform!(adaboost::Adaboost, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
+
+Function to predict using the optimized hyperparameters of the trained `Adaboost` instance.
+"""
 function transform!(adaboost::Adaboost, features::T) where {T<:Union{Vector,Matrix,DataFrame}}
   instance = features
   if typeof(features) <: DataFrame

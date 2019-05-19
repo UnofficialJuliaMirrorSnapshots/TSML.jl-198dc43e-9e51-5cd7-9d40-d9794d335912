@@ -56,6 +56,8 @@ The files in testing directory doesn't need to be labeled but we use the labelin
 a way to validate the effectiveness of the classifier. The labels will be used as the
 groundtruth during prediction/classification.
 
+## TSClassifier
+
 Let us now setup an instance of the `TSClassifier` and pass the arguments containing
 the directory locations of files for training, testing, and modeling.
 
@@ -88,7 +90,8 @@ mdirname = tscl.args[:modeldirectory]
 modelfname=tscl.args[:juliarfmodelname]
 
 trstatfname = joinpath(mdirname,modelfname*".csv")
-CSV.read(trstatfname) |> DataFrame
+res = CSV.read(trstatfname) |> DataFrame
+first(res,5)
 ```
 
 Let's check the accuracy of prediction with the test data using the `transform!` function.

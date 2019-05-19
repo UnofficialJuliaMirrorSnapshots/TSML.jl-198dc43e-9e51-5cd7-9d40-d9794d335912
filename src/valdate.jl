@@ -26,8 +26,10 @@ function transform!(mtr::Matrifier,xx::T) where {T<:Union{Matrix,Vector,DataFram
   typeof(xx) <: DataFrame || error("input is not a dataframe")
   x = deepcopy(xx[:Value])
   x isa Vector || error("data should be a vector")
+  mtype = eltype(x)
   res=toMatrix(mtr,x)
-  convert(Array{Float64},res)
+  resarray=convert(Array{mtype},res) |> DataFrame
+  rename!(resarray,names(resarray)[end] => :output)
 end
 
 function toMatrix(mtr::Transformer, x::Vector)
@@ -93,7 +95,8 @@ function transform!(dtr::Dateifier,xx::T) where {T<:Union{Matrix,Vector,DataFram
   dt[:doq]=Dates.dayofquarter.(endpoints)
   dt[:qoy]=Dates.quarterofyear.(endpoints)
   dtr.args[:header] = names(dt)
-  convert(Matrix{Int64},dt)
+  #convert(Matrix{Int64},dt)
+  return dt
 end
 
 
@@ -163,9 +166,10 @@ end
 function getMedian(t::Type{T},xx::DataFrame) where {T<:Union{TimePeriod,DatePeriod}}
   x = deepcopy(xx)
   sgp = Symbol(t)
-  fn = Dict(Dates.Hour=>Dates.hour,
+  fn = Dict(Dates.Second=>Dates.second,
             Dates.Minute=>Dates.minute,
-            Dates.Second=>Dates.second,
+            Dates.Hour=>Dates.hour,
+            Dates.Day=>Dates.day,
             Dates.Month=>Dates.month)
   try
     x[sgp]=fn[t].(x[:Date])
@@ -215,6 +219,7 @@ function transform!(dvzr::DateValizer,xx::T) where {T<:DataFrame}
   fn = Dict(Dates.Hour=>Dates.hour,
             Dates.Minute=>Dates.minute,
             Dates.Second=>Dates.second,
+            Dates.Day => Dates.day,
             Dates.Month=>Dates.month)
   try
     joined[sym]=fn[grpby].(joined[:Date])

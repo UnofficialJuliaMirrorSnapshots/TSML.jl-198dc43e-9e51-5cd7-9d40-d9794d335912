@@ -4,10 +4,21 @@ Author = "Paulito P. Palmes"
 
 # Statistical Metrics
 
-Let us again start generating an artificial data with missing values which we 
-will use in our tutorial below.
+Each TS can be evaluated to extract its statistical features which can be used for
+data quality assessment, data discovery by clustering and classification, and anomaly
+characterization among others.
 
-```@example stat
+TSML relies on `Statifier` to perform statistical metrics on the TS which can be
+configured to extract the statistics of missing blocks aside from the non-missing elements.
+Some of the scalar statistics it uses include: pacf, acf, autocor, quartiles, mean, median,
+max, min, kurtosis, skewness, variation, standard error, entropy, etc. It has only
+one argument `:processmissing => true` which indicates whether to include the statistics of
+missing data.
+
+Let us again start generating an artificial data with missing values 
+using the `generateDataWithMissing()` described in the beginning of tutorial.
+
+```@setup stat
 using Random, Dates, DataFrames
 function generateDataWithMissing()
    Random.seed!(123)
@@ -19,7 +30,8 @@ function generateDataWithMissing()
    df[:Value][gndxmissing] .= missing
    return df
 end
-
+```
+```@example stat
 X = generateDataWithMissing()
 first(X,15)
 ```
