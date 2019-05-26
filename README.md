@@ -1,26 +1,14 @@
-# TSML 
+<div align="center"> <img
+src="https://ibm.github.io/TSML.jl/tsmllogo/tsmllogo13.png"
+alt="TSML Logo" width="250"></img> </div>
 
-*A Julia package for time series data processing, classification, clustering, and prediction*
+| **Documentation** | **Build Status** | **Help** |
+|:---:|:---:|:---:|
+| [![][docs-dev-img]][docs-dev-url] [![][docs-stable-img]][docs-stable-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] | [![][slack-img]][slack-url] [![][gitter-img]][gitter-url] |
 
-| **Documentation**                                                               | **Build Status**                                                                                |
-|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![][docs-dev-img]][docs-dev-url] |  [![][travis-img]][travis-url] |
+### TSML is a package for time series data processing, classification, clustering, and prediction written in [Julia](http://julialang.org/).
 
-## Installation
-- TSML is part of the Julia package repository
-- It can be installed from the `julia>` REPL by typing
-`]` to enter into the `pkg>` REPL mode and run:
-
-```
-pkg> add TSML
-```
-
-or by using the `Pkg` API:
-
-```
-julia> using Pkg
-julia> Pkg.add("TSML")
-```
+The design/framework of this package is influenced heavily by Samuel Jenkins' [Orchestra.jl](https://github.com/svs14/Orchestra.jl) and Paulito Palmes [CombineML.jl](https://github.com/ppalmes/CombineML.jl) packages.
 
 ## Package Features
 
@@ -28,11 +16,37 @@ julia> Pkg.add("TSML")
 - TS imputation based on symmetric Nearest Neighbors
 - TS statistical metrics for data quality assessment
 - TS classification for automatic data discovery
-- TS ML with more than 100+ libraries from caret, scikitlearn, and julia
-- TS date-val matrix conversion of 1-d TS using sliding windows for ML input
+- TS machine learning models with more than 100+ libraries from caret, scikitlearn, and julia
+- TS date-value matrix conversion of 1-D TS using sliding windows for ML input
 - Pipeline API for high-level workflow processing
-- Easily extensible architecture relying just two main interfaces: fit and transform
-- Common API wrappers for ML libs from PyCall and RCall
+- Easily extensible architecture relying on just two interfaces: fit and transform
+- Common API wrappers for ML libs from JuliaML, PyCall, and RCall 
+
+## Installation
+TSML is in the Julia Official package registry. The latest release can be installed at the Julia prompt using Julia's package management which is triggered by pressing `]` at the julia prompt:
+
+```julia
+julia> ]
+(v1.1) pkg> add TSML
+```
+
+Or, equivalently, via the `Pkg` API:
+
+```julia
+julia> using Pkg
+julia> Pkg.add("TSML")
+```
+
+## Documentation
+
+- [**STABLE**][docs-stable-url] &mdash; **documentation of the most recently tagged version.**
+- [**DEVEL**][docs-dev-url] &mdash; *documentation of the in-development version.*
+
+## Project Status
+
+TSML is tested and actively developed on Julia `1.0` and above for Linux and macOS.
+
+There is no support for Julia versions `0.4`, `0.5`, `0.6` and `0.7`.
 
 ## Overview
 
@@ -48,21 +62,38 @@ TSML uses a pipeline which iteratively calls the __fit__ and __transform__ famil
 
 Machine learning functions in TSML are wrappers to the corresponding Scikit-learn, Caret, and native Julia ML libraries. There are more than hundred classifiers and regression functions available using a common API. 
 
-Below is an example of the pipeline workflow: 
 
+Generally, you will need the different transformers and utils in TSML for time-series processing. To use them, it is standard in TSML code to have the following declared at the topmost part of your application:
+
+- #### Load TSML and supporting submodules
+```julia
+using TSML 
+using TSML.TSMLTransformers
+using TSML.TSMLTypes
+using TSML.Utils
 ```
+
+- #### Setup different transformers
+```julia
+using TSML: DataReader, DateValgator, DateValNNer
+using TSML: Statifier, Monotonicer, Outliernicer
+
 # Setup source data and filters to aggregate and impute hourly
 fname = joinpath(dirname(pathof(TSML)),"../data/testdata.csv")
-csvfilter = DataReader(Dict(:filename=>fname,:dateformat=>"dd/mm/yyyy HH:MM"))
-valgator = DateValgator(Dict(:dateinterval=>Dates.Hour(1)))
-valnner = DateValNNer(Dict(:dateinterval=>Dates.Hour(1)))
-stfier = Statifier(Dict(:processmissing=>true))
+
+csvreader = DataReader(Dict(:filename=>fname,:dateformat=>"dd/mm/yyyy HH:MM"))
+valgator = DateValgator(Dict(:dateinterval=>Dates.Hour(1))) # aggregator
+valnner = DateValNNer(Dict(:dateinterval=>Dates.Hour(1)))   # imputer
+stfier = Statifier(Dict(:processmissing=>true))             # get statistics
+mono = Monotonicer(Dict()) # normalize monotonic data
+outnicer = Outliernicer(Dict(:dateinterval => Dates.Hour(1))) # normalize outliers
 ```
 
-```
+- #### Load csv data, aggregate, and get statistics
+```julia
 # Setup pipeline without imputation and run
 mpipeline1 = Pipeline(Dict(
-  :transformers => [csvfilter,valgator,stfier]
+  :transformers => [csvreader,valgator,stfier]
  )
 )
 fit!(mpipeline1)
@@ -72,10 +103,39 @@ respipe1 = transform!(mpipeline1)
 @show respipe1
 ```
 
-```
+ - #### Load csv data, aggregate, impute, and get statistics
+```julia
 # Add imputation in the pipeline and rerun
 mpipeline2 = Pipeline(Dict(
-  :transformers => [csvfilter,valgator,valnner,stfier]
+  :transformers => [csvreader,valgator,valnner,stfier]
+ )
+)
+fit!(mpipeline2)
+respipe2 = transform!(mpipeline2)
+
+# Show statistics including blocks of missing data stats
+@show respipe2
+```
+
+- #### Load csv data, aggregate, impute, and normalize outliers
+```julia
+# Add imputation in the pipeline and rerun
+mpipeline2 = Pipeline(Dict(
+  :transformers => [csvreader,valgator,valnner,outnicer]
+ )
+)
+fit!(mpipeline2)
+respipe2 = transform!(mpipeline2)
+
+# Show statistics including blocks of missing data stats
+@show respipe2
+```
+
+- #### Load csv data, aggregate, impute, and normalize monotonic data
+```julia
+# Add imputation in the pipeline and rerun
+mpipeline2 = Pipeline(Dict(
+  :transformers => [csvreader,valgator,valnner,mono]
  )
 )
 fit!(mpipeline2)
@@ -92,28 +152,30 @@ We welcome contributions, feature requests, and suggestions. Here is the link to
 ## Help usage
 
 Usage questions can be posted in:
-- [Julia Slack](https://julialang.org/community/) 
+- [Julia Community](https://julialang.org/community/) 
 - [Gitter TSML Community][gitter-url]
 - [Julia Discourse forum][discourse-tag-url]
 
 
 [contrib-url]: https://github.com/IBM/TSML.jl/blob/master/CONTRIBUTORS.md
-[discourse-tag-url]: https://discourse.julialang.org/
-[gitter-url]: https://gitter.im/TSMLearning/community
-
-[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://ibm.github.io/TSML.jl/latest/
-[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://ibm.github.io/TSML.jl/dev/
-[travis-img]: https://travis-ci.org/ppalmes/TSML.jl.svg?branch=master
-[travis-url]: https://travis-ci.org/ppalmes/TSML.jl
 [issues-url]: https://github.com/IBM/TSML.jl/issues
 
-<!--
+[discourse-tag-url]: https://discourse.julialang.org/
+
+[gitter-url]: https://gitter.im/TSMLearning/community
+[gitter-img]: https://badges.gitter.im/ppalmes/TSML.jl.svg
+
+[slack-img]: https://img.shields.io/badge/chat-on%20slack-yellow.svg
+[slack-url]: https://julialang.slack.com
+
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://ibm.github.io/TSML.jl/stable/
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://ibm.github.io/TSML.jl/
-[appveyor-img]: 
-[appveyor-url]:
-[codecov-img]: 
-[codecov-url]: 
--->
+[docs-dev-url]: https://ibm.github.io/TSML.jl/latest/
+
+[travis-img]: https://travis-ci.org/ppalmes/TSML.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/ppalmes/TSML.jl
+
+[codecov-img]: https://codecov.io/gh/IBM/TSML.jl/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/IBM/TSML.jl
