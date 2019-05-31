@@ -22,7 +22,7 @@ using TSML.TSMLTransformers
 
 using TSML.DecisionTreeLearners: RandomForest
 using TSML.Statifiers
-using TSML.DataReaders
+using TSML: CSVDateValReader
 
 using CSV
 using DataFrames
@@ -88,7 +88,7 @@ function getfilestat(ldirname::AbstractString,lfname::AbstractString)
   dtype in string.(instances(TSType)) || error(dtype * ", filename does not indicate known data type.")
   # create a pipeline to get stat
   fname = joinpath(ldirname,lfname)
-  csvfilter = DataReader(Dict(:filename=>fname,:dateformat=>"dd/mm/yyyy HH:MM"))
+  csvfilter = CSVDateValReader(Dict(:filename=>fname,:dateformat=>"dd/mm/yyyy HH:MM"))
   valgator = DateValgator(Dict(:dateinterval=>Dates.Hour(1)))
   valnner = DateValNNer(Dict(:dateinterval=>Dates.Hour(1)))
   stfier = Statifier(Dict(:processmissing=>false))
@@ -114,9 +114,9 @@ function getStats(ldirname::AbstractString)
     try
       df=getfilestat(ldirname,file)
       trdata = vcat(trdata,df)
-      @info "getting stats of "*file
+      println("getting stats of "*file)
     catch
-      @info "skipping due to error "*file
+      println("skipping due to error "*file)
       continue
     end
   end
@@ -157,7 +157,7 @@ function transform!(tsc::TSClassifier, features::T=[]) where {T<:Union{Vector,Ma
   (sum(names(X) .== mfeatures ) == length(mfeatures)) || error("features mismatch")
   serializedmodel = joinpath(mdirname,modelfname)
   if isfile(serializedmodel)
-    @info "loading model from file: "*serializedmodel
+    println("loading model from file: "*serializedmodel)
     model=open(serializedmodel,"r") do file
       deserialize(file)
     end

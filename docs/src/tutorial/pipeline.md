@@ -24,8 +24,8 @@ function generateDataWithMissing()
 end
 ```
 
-```@example pipeline
-X = generateDataWithMissing()
+```@repl pipeline
+X = generateDataWithMissing();
 first(X,15)
 ```
 
@@ -55,6 +55,10 @@ mypipeline = Pipeline(
 
 fit!(mypipeline,X)
 results = transform!(mypipeline,X)
+nothing #hide
+```
+
+```@repl pipeline
 first(results,10)
 ```
 
@@ -71,6 +75,7 @@ TSML by adding `CSVReader` transformer and added in the pipeline to process CSV 
 
 ```@example pipeline
 using TSML.TSMLTypes
+using TSML.Utils
 import TSML.TSMLTypes.fit!
 import TSML.TSMLTypes.transform!
 
@@ -104,6 +109,7 @@ function transform!(csvrdr::CSVReader,x::T=[]) where {T<:Union{DataFrame,Vector,
     df[:Date] = DateTime.(df[:Date],fmt)
     df
 end
+nothing #hide
 ```
 
 Instead of passing table X that contains the time series, we will add 
@@ -114,9 +120,13 @@ for processing.
 
 ```@example pipeline
 fname = joinpath(dirname(pathof(TSML)),"../data/testdata.csv")
-csvreader = CSVReader(Dict(:filename=>fname,:dateformat=>"d/m/y H:M"))
+csvreader = CSVDateValReader(Dict(:filename=>fname,:dateformat=>"d/m/y H:M"))
 fit!(csvreader)
 csvdata = transform!(csvreader)
+nothing #hide
+```
+
+```@repl pipeline
 first(csvdata,10)
 ```
 
@@ -136,6 +146,10 @@ mypipeline = Pipeline(
 
 fit!(mypipeline)
 results = transform!(mypipeline)
+nothing #hide
+```
+
+```@repl pipeline
 first(results,10)
 ```
 

@@ -1,6 +1,5 @@
 module TSMLTransformers
 
-using MLDataUtils
 using Dates
 using DataFrames
 using Statistics
@@ -8,6 +7,8 @@ using Random
 using CSV
 
 export fit!,transform!
+
+using MLDataUtils: slidingwindow
 
 export Transformer,TSLearner
 export Imputer,Pipeline,SKLLearner,OneHotEncoder,Wrapper
@@ -186,12 +187,19 @@ function fit!(pipe::Pipeline, features::T=[], labels::Vector=[]) where {T<:Union
 
   current_instances = instances
   new_transformers = Transformer[]
-  for t_index in 1:length(transformers)
+
+  # fit-transform all except last element
+  # last element calls fit only
+  trlength = length(transformers)
+  for t_index in 1:(trlength - 1)
     transformer = createtransformer(transformers[t_index], transformer_args)
     push!(new_transformers, transformer)
     fit!(transformer, current_instances, labels)
     current_instances = transform!(transformer, current_instances)
   end
+  transformer = createtransformer(transformers[trlength], transformer_args)
+  push!(new_transformers, transformer)
+  fit!(transformer, current_instances, labels)
 
   pipe.model = Dict(
       :transformers => new_transformers,
