@@ -36,8 +36,15 @@ using .Outliernicers
 include("plotter.jl")
 using .Plotters
 
+include("timescaledb.jl")
+using .TimescaleDBs
+
 include("demo.jl")
 using .TSMLDemo
 export tsml_demo
+
+include("argparse.jl")
+using .ArgumentParsers
+
 
 end # module
