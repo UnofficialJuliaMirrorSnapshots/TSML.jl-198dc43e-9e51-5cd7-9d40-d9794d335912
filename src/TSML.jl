@@ -10,9 +10,11 @@ using .Utils
 include("transformers.jl")
 using .TSMLTransformers
 
-
 include("baseline.jl")
 using .BaselineAlgos
+
+include("mlbase.jl")
+using .MLBaseWrapper
 
 include("decisiontree.jl")
 using .DecisionTreeLearners
@@ -46,5 +48,6 @@ export tsml_demo
 include("argparse.jl")
 using .ArgumentParsers
 
-
+include("ensemble.jl")
+using .EnsembleMethods
 end # module
