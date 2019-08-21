@@ -1,4 +1,4 @@
-module Plotters
+@reexport module Plotters
 
 using Plots
 using GR
@@ -17,15 +17,16 @@ using TSML.Utils
 
 # setup plotting for publication
 function setupplot(pdfoutput::Bool)
-  Plots.gr()
-  fntsm = Plots.font("sans-serif", 8)
-  fntlg = Plots.font("sans-serif", 8)
-  Plots.default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm)
+  Plots.gr();
+  fntsm = Plots.font("sans-serif", 8);
+  fntlg = Plots.font("sans-serif", 8);
+  Plots.default(titlefont=fntlg, guidefont=fntlg, tickfont=fntsm, legendfont=fntsm);
   if pdfoutput == true 
-    Plots.default(size=(390,200)) #Plot canvas size
+    Plots.default(size=(390,200)); #Plot canvas size
   else
-    Plots.default(size=(500,300)) #Plot canvas size
+    Plots.default(size=(500,300)); #Plot canvas size
   end
+  return nothing
 end
 
 """
@@ -67,9 +68,7 @@ function transform!(pltr::Plotter, features::T) where {T<:Union{Vector,Matrix,Da
   df.Value .= features.Value
   ndxmissing = findall(x->ismissing(x),df.Value)
   df.Value[ndxmissing] .= NaN
-
   setupplot(pltr.args[:pdfoutput])
-  Plots.gr()
   if pltr.args[:interactive] == true && pltr.args[:pdfoutput] == false
     interactiveplot(df)
   else
